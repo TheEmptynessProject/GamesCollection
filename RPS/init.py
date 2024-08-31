@@ -1,37 +1,39 @@
 import pygame
 import random
 import math
+from typing import List
 
 pygame.init()
 
-WIDTH, HEIGHT = 480, 480
-FPS = 144
-NUM_OBJECTS = 20
-OBJECT_SIZE = 50
+WIDTH: int = 480
+HEIGHT: int = 480
+FPS: int = 144
+NUM_OBJECTS: int = 25
+OBJECT_SIZE: int = 50
 
 WHITE = (255, 255, 255)
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Rock Paper Scissors")
 
-rock_img = pygame.transform.scale(pygame.image.load("rock.png"), (OBJECT_SIZE, OBJECT_SIZE))
-paper_img = pygame.transform.scale(pygame.image.load("paper.png"), (OBJECT_SIZE, OBJECT_SIZE))
-scissors_img = pygame.transform.scale(pygame.image.load("scissors.png"), (OBJECT_SIZE, OBJECT_SIZE))
+rock_img: pygame.Surface = pygame.transform.scale(pygame.image.load("rock.png"), (OBJECT_SIZE, OBJECT_SIZE))
+paper_img: pygame.Surface = pygame.transform.scale(pygame.image.load("paper.png"), (OBJECT_SIZE, OBJECT_SIZE))
+scissors_img: pygame.Surface = pygame.transform.scale(pygame.image.load("scissors.png"), (OBJECT_SIZE, OBJECT_SIZE))
 
 class GameObject:
-    def __init__(self, x, y, img, type):
-        self.x = x
-        self.y = y
-        self.img = img
-        self.type = type
-        self.width = img.get_width()
-        self.height = img.get_height()
-        self.speed = random.uniform(0.8, 1.5)
-        self.vx = self.speed * math.cos(random.uniform(1, 1 * math.pi))
-        self.vy = self.speed * math.sin(random.uniform(1, 1 * math.pi))
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+    def __init__(self, x: int, y: int, img: pygame.Surface, type: str) -> None:
+        self.x: float = x
+        self.y: float = y
+        self.img: pygame.Surface = img
+        self.type: str = type
+        self.width: int = img.get_width()
+        self.height: int = img.get_height()
+        self.speed: float = random.uniform(0.8, 1.5)
+        self.vx: float = self.speed * math.cos(random.uniform(1, 1 * math.pi))
+        self.vy: float = self.speed * math.sin(random.uniform(1, 1 * math.pi))
+        self.rect: pygame.Rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
-    def move(self):
+    def move(self) -> None:
         self.x += self.vx
         self.y += self.vy
         self.rect.topleft = (self.x, self.y)
@@ -41,15 +43,15 @@ class GameObject:
         if self.y <= 0 or self.y + self.height >= HEIGHT:
             self.vy = -self.vy
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.img, (self.x, self.y))
 
-    def check_collision(self, other):
+    def check_collision(self, other: 'GameObject') -> bool:
         return self.rect.colliderect(other.rect)
 
-    def resolve_collision(self, other):
-        overlap_x = min(self.rect.right, other.rect.right) - max(self.rect.left, other.rect.left)
-        overlap_y = min(self.rect.bottom, other.rect.bottom) - max(self.rect.top, other.rect.top)
+    def resolve_collision(self, other: 'GameObject') -> None:
+        overlap_x: float = min(self.rect.right, other.rect.right) - max(self.rect.left, other.rect.left)
+        overlap_y: float = min(self.rect.bottom, other.rect.bottom) - max(self.rect.top, other.rect.top)
 
         if overlap_x < overlap_y:
             if self.rect.centerx < other.rect.centerx:
@@ -71,7 +73,7 @@ class GameObject:
         self.rect.topleft = (self.x, self.y)
         other.rect.topleft = (other.x, other.y)
 
-    def handle_interaction(self, other):
+    def handle_interaction(self, other: 'GameObject') -> None:
         if self.type == "Rock" and other.type == "Scissors":
             other.type = "Rock"
             other.img = rock_img
@@ -91,30 +93,30 @@ class GameObject:
             self.type = "Paper"
             self.img = paper_img
 
-def is_overlapping(new_obj, objects):
+def is_overlapping(new_obj: GameObject, objects: List[GameObject]) -> bool:
     for obj in objects:
         if new_obj.check_collision(obj):
             return True
     return False
 
-def create_objects():
-    objects = []
+def create_objects() -> List[GameObject]:
+    objects: List[GameObject] = []
     for _ in range(NUM_OBJECTS):
         while True:
-            x = random.randint(0, WIDTH - OBJECT_SIZE)
-            y = random.randint(0, HEIGHT - OBJECT_SIZE)
-            type = random.choice(["Rock", "Paper", "Scissors"])
-            img = rock_img if type == "Rock" else paper_img if type == "Paper" else scissors_img
-            new_obj = GameObject(x, y, img, type)
+            x: int = random.randint(0, WIDTH - OBJECT_SIZE)
+            y: int = random.randint(0, HEIGHT - OBJECT_SIZE)
+            type: str = random.choice(["Rock", "Paper", "Scissors"])
+            img: pygame.Surface = rock_img if type == "Rock" else paper_img if type == "Paper" else scissors_img
+            new_obj: GameObject = GameObject(x, y, img, type)
             if not is_overlapping(new_obj, objects):
                 objects.append(new_obj)
                 break
     return objects
 
-def run():
-    objects = create_objects()
-    clock = pygame.time.Clock()
-    running = True
+def run() -> bool:
+    objects: List[GameObject] = create_objects()
+    clock: pygame.time.Clock = pygame.time.Clock()
+    running: bool = True
 
     while running:
         clock.tick(FPS)
@@ -136,7 +138,7 @@ def run():
 
         pygame.display.flip()
 
-        first_type = objects[0].type
+        first_type: str = objects[0].type
         if all(obj.type == first_type for obj in objects):
             running = False
 
