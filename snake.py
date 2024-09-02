@@ -40,16 +40,31 @@ def auto_move():
     global snake_direction
     head = snake[0]
     food = food_pos
+    dx = food[0] - head[0]
+    dy = food[1] - head[1]
+    if abs(dx) > abs(dy):
+        if dx > 0 and snake_direction != "LEFT":
+            return "RIGHT"
+        elif dx < 0 and snake_direction != "RIGHT":
+            return "LEFT"
+    else:
+        if dy < 0 and snake_direction != "DOWN":
+            return "UP"
+        elif dy > 0 and snake_direction != "UP":
+            return "DOWN"
 
-    if food[0] > head[0] and snake_direction != "LEFT":
-        return "RIGHT"
-    elif food[0] < head[0] and snake_direction != "RIGHT":
-        return "LEFT"
-    elif food[1] < head[1] and snake_direction != "DOWN":
-        return "UP"
-    elif food[1] > head[1] and snake_direction != "UP":
-        return "DOWN"
-    
+
+    if abs(dx) <= abs(dy):
+        if dx > 0 and snake_direction != "LEFT":
+            return "RIGHT"
+        elif dx < 0 and snake_direction != "RIGHT":
+            return "LEFT"
+    else:
+        if dy < 0 and snake_direction != "DOWN":
+            return "UP"
+        elif dy > 0 and snake_direction != "UP":
+            return "DOWN"
+
     return snake_direction
 
 def game_loop():
