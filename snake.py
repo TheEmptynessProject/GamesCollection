@@ -1,7 +1,7 @@
 import pygame
 import random
 import time
-
+from collections import deque
 pygame.init()
 
 width = 800
@@ -36,43 +36,75 @@ def generate_food():
         if pos not in snake:
             return pos
 
+def bfs(start, goal, obstacles):
+    queue = deque([[start]])
+    seen = set([tuple(start)])
+    while queue:
+        path = queue.popleft()
+        x, y = path[-1]
+        if [x, y] == goal:
+            return path
+        for x2, y2 in ((x+snake_block, y), (x-snake_block, y), (x, y+snake_block), (x, y-snake_block)):
+            if (0 <= x2 < width and 0 <= y2 < height and 
+                [x2, y2] not in obstacles and 
+                (x2, y2) not in seen):
+                queue.append(path + [[x2, y2]])
+                seen.add((x2, y2))
+    return None
+
 def auto_move():
     global snake_direction
     head = snake[0]
     food = food_pos
 
-    moves = {
-        "RIGHT": (snake_block, 0),
-        "LEFT": (-snake_block, 0),
-        "UP": (0, -snake_block),
-        "DOWN": (0, snake_block)
-    }
+    obstacles = snake[1:]
 
-    def is_safe_move(move):
-        new_head = [head[0] + move[0], head[1] + move[1]]
-        return (0 <= new_head[0] < width and
-                0 <= new_head[1] < height and
-                new_head not in snake[1:])
+    path_to_food = bfs(head, food, obstacles)
 
-    safe_moves = {}
-    for direction, move in moves.items():
-        if is_safe_move(move) and direction != opposite_direction(snake_direction):
-            new_head = [head[0] + move[0], head[1] + move[1]]
-            distance = ((new_head[0] - food[0])**2 + (new_head[1] - food[1])**2)**0.5
-            safe_moves[direction] = distance
+    if path_to_food:
+        simulated_snake = snake.copy()
+        for step in path_to_food[1:]:
+            simulated_snake.insert(0, step)
+            simulated_snake.pop()
+            
+            if not bfs(step, simulated_snake[-1], simulated_snake[:-1]):
+                path_to_food = None
+                break
 
-    if safe_moves:
-        return min(safe_moves, key=safe_moves.get)
+    if path_to_food:
+        next_move = path_to_food[1]
+        if next_move[0] > head[0]:
+            return "RIGHT"
+        elif next_move[0] < head[0]:
+            return "LEFT"
+        elif next_move[1] < head[1]:
+            return "UP"
+        elif next_move[1] > head[1]:
+            return "DOWN"
     
-    for direction, move in moves.items():
-        if is_safe_move(move):
-            return direction
+    path_to_tail = bfs(head, snake[-1], obstacles[:-1])
+    if path_to_tail and len(path_to_tail) > 1:
+        next_move = path_to_tail[1]
+        if next_move[0] > head[0]:
+            return "RIGHT"
+        elif next_move[0] < head[0]:
+            return "LEFT"
+        elif next_move[1] < head[1]:
+            return "UP"
+        elif next_move[1] > head[1]:
+            return "DOWN"
+
+    for direction in ["RIGHT", "LEFT", "UP", "DOWN"]:
+        if direction == "RIGHT" and [head[0] + snake_block, head[1]] not in obstacles:
+            return "RIGHT"
+        elif direction == "LEFT" and [head[0] - snake_block, head[1]] not in obstacles:
+            return "LEFT"
+        elif direction == "UP" and [head[0], head[1] - snake_block] not in obstacles:
+            return "UP"
+        elif direction == "DOWN" and [head[0], head[1] + snake_block] not in obstacles:
+            return "DOWN"
 
     return snake_direction
-
-def opposite_direction(direction):
-    opposites = {"RIGHT": "LEFT", "LEFT": "RIGHT", "UP": "DOWN", "DOWN": "UP"}
-    return opposites.get(direction, direction)
 
 def game_loop():
     global snake_direction, food_pos
