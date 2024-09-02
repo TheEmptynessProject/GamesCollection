@@ -40,32 +40,39 @@ def auto_move():
     global snake_direction
     head = snake[0]
     food = food_pos
-    dx = food[0] - head[0]
-    dy = food[1] - head[1]
-    if abs(dx) > abs(dy):
-        if dx > 0 and snake_direction != "LEFT":
-            return "RIGHT"
-        elif dx < 0 and snake_direction != "RIGHT":
-            return "LEFT"
-    else:
-        if dy < 0 and snake_direction != "DOWN":
-            return "UP"
-        elif dy > 0 and snake_direction != "UP":
-            return "DOWN"
 
+    moves = {
+        "RIGHT": (snake_block, 0),
+        "LEFT": (-snake_block, 0),
+        "UP": (0, -snake_block),
+        "DOWN": (0, snake_block)
+    }
 
-    if abs(dx) <= abs(dy):
-        if dx > 0 and snake_direction != "LEFT":
-            return "RIGHT"
-        elif dx < 0 and snake_direction != "RIGHT":
-            return "LEFT"
-    else:
-        if dy < 0 and snake_direction != "DOWN":
-            return "UP"
-        elif dy > 0 and snake_direction != "UP":
-            return "DOWN"
+    def is_safe_move(move):
+        new_head = [head[0] + move[0], head[1] + move[1]]
+        return (0 <= new_head[0] < width and
+                0 <= new_head[1] < height and
+                new_head not in snake[1:])
+
+    safe_moves = {}
+    for direction, move in moves.items():
+        if is_safe_move(move) and direction != opposite_direction(snake_direction):
+            new_head = [head[0] + move[0], head[1] + move[1]]
+            distance = ((new_head[0] - food[0])**2 + (new_head[1] - food[1])**2)**0.5
+            safe_moves[direction] = distance
+
+    if safe_moves:
+        return min(safe_moves, key=safe_moves.get)
+    
+    for direction, move in moves.items():
+        if is_safe_move(move):
+            return direction
 
     return snake_direction
+
+def opposite_direction(direction):
+    opposites = {"RIGHT": "LEFT", "LEFT": "RIGHT", "UP": "DOWN", "DOWN": "UP"}
+    return opposites.get(direction, direction)
 
 def game_loop():
     global snake_direction, food_pos
