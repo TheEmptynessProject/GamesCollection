@@ -2,10 +2,12 @@ import pygame
 import random
 import time
 from collections import deque
+from typing import List
+
 pygame.init()
 
-width = 800
-height = 600
+width: int = 800
+height: int = 600
 window = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Snake Game")
 
@@ -14,31 +16,31 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
-snake_block = 20
-snake_speed = 50
+snake_block: int = 20
+snake_speed: int = 50
 
-snake = [[width // 2, height // 2]]
-snake_direction = "RIGHT"
+snake: List[List[int]] = [[width // 2, height // 2]]
+snake_direction: str = "RIGHT"
 
-food_pos = [random.randrange(1, (width // snake_block)) * snake_block,
-            random.randrange(1, (height // snake_block)) * snake_block]
+food_pos: List[int] = [random.randrange(1, (width // snake_block)) * snake_block,
+                       random.randrange(1, (height // snake_block)) * snake_block]
 
 clock = pygame.time.Clock()
 
-def draw_snake(snake_list):
+def draw_snake(snake_list: List[List[int]]) -> None:
     for x in snake_list:
         pygame.draw.rect(window, GREEN, [x[0], x[1], snake_block, snake_block])
 
-def generate_food():
+def generate_food() -> List[int]:
     while True:
         pos = [random.randrange(1, (width // snake_block)) * snake_block,
                random.randrange(1, (height // snake_block)) * snake_block]
         if pos not in snake:
             return pos
 
-def bfs(start, goal, obstacles):
-    queue = deque([[start]])
-    seen = set([tuple(start)])
+def bfs(start: List[int], goal: List[int], obstacles: List[List[int]]) -> None:
+    queue: deque = deque([[start]])
+    seen: set = set([tuple(start)])
     while queue:
         path = queue.popleft()
         x, y = path[-1]
@@ -52,7 +54,7 @@ def bfs(start, goal, obstacles):
                 seen.add((x2, y2))
     return None
 
-def auto_move():
+def auto_move() -> str:
     global snake_direction
     head = snake[0]
     food = food_pos
@@ -106,7 +108,7 @@ def auto_move():
 
     return snake_direction
 
-def game_loop():
+def game_loop() -> None:
     global snake_direction, food_pos
 
     game_over = False
@@ -158,5 +160,6 @@ def game_loop():
     time.sleep(2)
 
     pygame.quit()
+
 if __name__ == "__main__":
     game_loop()
